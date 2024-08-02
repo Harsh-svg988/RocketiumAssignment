@@ -14,8 +14,28 @@ router.get('/data', (req, res) => {
     let jsonData = JSON.parse(data);
 
     // Filtering
+    // if (req.query.filterKey && req.query.filterValue) {
+    //   jsonData = jsonData.filter(item => item[req.query.filterKey] == req.query.filterValue);
+    // }
     if (req.query.filterKey && req.query.filterValue) {
-      jsonData = jsonData.filter(item => item[req.query.filterKey] == req.query.filterValue);
+      const filterKey = req.query.filterKey;
+      const filterValue = req.query.filterValue;
+
+      // Check if filterKey exists in at least one item in jsonData
+      const isValidFilterKey = jsonData.some(item => item.hasOwnProperty(filterKey));
+
+      if (isValidFilterKey) {
+        // Check if filterValue is valid (not undefined or null)
+        if (filterValue !== undefined && filterValue !== null) {
+          jsonData = jsonData.filter(item => item[filterKey] == filterValue);
+        } else {
+          return res.status(400).send({ error: 'Invalid filterValue provided' });
+        }
+      } else {
+        return res.status(400).send({ error: 'Invalid filterKey provided' });
+      }
+    } else if (req.query.filterKey || req.query.filterValue) {
+      return res.status(400).send({ error: 'Both filterKey and filterValue are required' });
     }
 
     // Sorting
